@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Topic Modeling</title>
+
+    <style>
+        /* Dropdown Button*/
+.dropbtn{
+    background-color: #04AA6D;
+    color: white;
+    padding: 16px;
+    font-size: 16px;
+    border:none;
+    cursor: pointer;
+}
+/* Dropdown Button on hover & focus */
+.dropbtn:hover, .dropbtn:focus{
+    background-color: #3e8e41;
+}
+#myInput{
+    box-sizing:border-box;
+   /*background-image:url('searchicon.webp');*/
+    background-position: 14px 12px;
+    background-repeat: no-repeat;
+    font-size: 16px;
+    padding: 14px 20px 12px 45px;
+    border:none;
+    border-bottom:1px solid #ddd;
+}
+
+#myInput:focus {outline: 3px solid #ddd;}
+
+/* The container <div> - needed to position the drop down content */
+.dropdown{
+    position:relative;
+    display: inline-block;
+}
+
+/* Dropdown content (hidden by default)*/
+.dropdown-content{
+    display: none;
+    positon: absolute;
+    background-color: #f6f6f6;
+    min-width: 230px;
+    overflow: auto;
+    border: 1px solid #ddd;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index:1;
+}
+
+/* links inside the dropdown*/
+.dropdown-content a{
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+/* change color of dropdown links on hover*/
+.dropdown a:hover{background-color: #ddd}
+
+/*show the dropdown menu*/
+.show{display:block;}
+    </style>
+</head>
+<body>
+
+<h1>Upload Files with Fetch API</h1>
+<P id = "welcome">Enter data</P>
+
+    <input id="contentFile" type="file"  />
+
+
+
+<script>
+    //import firebase from 'firebase/compat/app';
+   //import 'firebase/compat/auth';
+    //import 'firebase/compat/firestore';
+
+    const welcomeMsg = document.getElementById('welcome');
+    document.getElementById('contentFile').onchange = function(evt)  {
+        try {
+            let files = evt.target.files;
+            if (!files.length) {
+                alert('No file selected!');
+                return;
+            }
+            let file = files[0];
+            let reader = new FileReader();
+            const self = this;
+            reader.onload = (event) => {
+                console.log('FILE CONTENT', event.target.result);
+                data = convertTXTToJson(event.target.result);
+                fetch("http://127.0.0.1:5000/post",
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-type': 'application/json',
+                        'Accept' :'application/json'
+                    },
+                    body: JSON.stringify(data)}).then(res=> {
+                    if (res.ok) {
+                        return res.json()
+                    } else {
+                        alert("something is wrong")}
+                    }).then(jsonResponse=> {
+                        console.log(jsonResponse);
+                        let response;
+                        response = "the perplexity is " + jsonResponse["perplexity"] + " the coherence score is " + jsonResponse["coherence score"] +
+                            " the topics are " +jsonResponse["topics"] + " the topic weighting is " + jsonResponse["topicweights"];
+                        welcomeMsg.innerHTML = response;
+                     })};
+            reader.readAsText(file);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+
+    function txtToCsv(s){
+        let text = s.split('\n')                               // split lines
+            .map(line => line.split(/\s+/).join(','))  // split spaces then join with ,
+            .join('\n')                                // rejoin lines
+        console.log(text)
+        return text;
+    }
+
+    function convertTXTToJson(str){
+        let csv = txtToCsv(str);
+
+        const array = csv.toString().split("\n");
+
+        /* Store the converted result into an array */
+        const csvToJsonResult = [];
+
+        /* Store the CSV column headers into seprate variable */
+        const headers = array[0].split(", ")
+
+        /* Iterate over the remaning data rows */
+        for (let i = 1; i < array.length - 1; i++) {
+        /* Empty object to store result in key value pair */
+        const jsonObject = {}
+        /* Store the current array element */
+        const currentArrayString = array[i]
+        let string = ''
+
+        let quoteFlag = 0
+        for (let character of currentArrayString) {
+            if (character === '"' && quoteFlag === 0) {
+                quoteFlag = 1
+            }
+            else if (character === '"' && quoteFlag == 1) quoteFlag = 0
+            if (character === ', ' && quoteFlag === 0) character = '|'
+            if (character !== '"') string += character
+        }
+
+        let jsonProperties = string.split("|")
+
+        for (let j in headers) {
+            if (jsonProperties[j].includes(", ")) {
+            jsonObject[headers[j]] = jsonProperties[j]
+                .split(", ").map(item => item.trim())
+            }
+            else jsonObject[headers[j]] = jsonProperties[j]
+        }
+        /* Push the genearted JSON object to resultant array */
+        csvToJsonResult.push(jsonObject)
+        }
+        return csvToJsonResult
+        /* Convert the final array to JSON */
+        //const json = JSON.stringify(csvToJsonResult);
+        //console.log(json)
+
+
+    }
+
+
+
+
+
+</script>
+</body>
+</html>

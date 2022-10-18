@@ -1,0 +1,31 @@
+Written by Natalie Crawford
+
+To implement this program you are going to need the app.py file. A folder titled "templates" that contains index.html
+and result.html. Additionally, you need an originally empty "uploads" folder that will be the destination of the
+uploaded .txt files from the user, as well as any required installations for Flask and the project,
+as designated in the app.py import lines.
+
+This program uses Flask to connect the html/javascript front end code to the back end python code. This connection allows
+for data to be sent and retrieved by both ends.
+
+When the program loads, the first screen the user sees is the index.html front end, rendered by the @'/' route in app.py.
+This screen asks the user to upload a .txt file.
+
+The data uploaded then gets sent to the app.py file via the @'/uploader' route in app.py. This upload_file() method saves
+the uploaded file to the /uploads folder and then calls the topicmodeling(file_name) method, sending the uploaded file's
+name to the method. This method uses the file's path in the /uploads folder to access the data and perform actions on it.
+
+The topic modeling method uses terminal commands and Mallet to learn the topics and the words per topic, as well
+as calculate the total weights of the topics or P(T|D). The method also uses a LDAMallet model to calculate the coherence.
+
+The coherence, topics, and topic weights are accessed and returned to the user via the @'/result' route in app.py, whose
+method is called in the @'/uploader' route.
+
+The result.html file uses Fetch API written in Javascript as a way to access the jsonified data sent via the @'/result'
+route in app.py.
+
+The result.html file renders a screen for the user that displays the number of topics, the words per topic, and the
+total normalized weight of the topics in a table. Additionally, a horizontal bar chart displaying the weights from
+greatest to least is displayed, as well as the coherence value.
+
+

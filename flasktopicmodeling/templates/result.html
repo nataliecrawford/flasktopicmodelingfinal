@@ -1,0 +1,183 @@
+<!--Written by Natalie Crawford-->
+<!DOCTYPE html>
+<html lang="en">
+<head style = "color: rgb(54,123,147);font-family: Georgia; text-align:center; font-size: xxx-large">
+    <title>Topic Modeling</title>
+    <style>
+        table{
+            background-color: rgb(146, 204, 224);
+            width:1000px;
+            height: 400px;
+            border: 4px;
+            border-collapse: collapse;
+            border-spacing: 2px;
+        }
+        th, td{
+            padding: 10px 20px;
+            border: 2px solid rgb(36,82,98);
+            border-color: rgb(36,82,98);
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.2/chart.min.js"></script>
+</head>
+<body style = "background: rgb(137,191,211); font-family: 'Trebuchet MS';">
+
+
+
+<h1 id= "page header" style = "color: rgb(18,41,49);font-family: 'Trebuchet MS'; text-align:center; text-shadow: rgba(36,82,98,0.56);">Topic Modeling Results</h1>
+
+<form id= "back button" action="/" class="inline" >
+    <button class="float-left submit-button" style="background-color: rgb(56,123,147); color: white;">Back</button>
+</form>
+
+
+<h2 id = "table header "style = "color: rgb(36,82,98);font-family: 'Trebuchet MS'; text-align:left;">The Topics and Their Probability Given the Uploaded Documents</h2>
+<ul id = "table position" style="font-size: medium; color: rgb(18,41,49); text-align: left; " ></ul>
+
+<h2 id = "chart header "style = "color: rgb(36,82,98);font-family: 'Trebuchet MS'; text-align:left;">Probability of Topics Occurring in Provided Documents, or Total Weight of Topics, in Order of Prevalence</h2>
+<canvas id="myChart" width="600" height="200" ></canvas>
+
+<h2 id = "coherence" style = "color: rgb(36,82,98);font-family: 'Trebuchet MS'; text-align:left;">The Coherence is </h2>
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.2/chart.min.js"></script>
+<script>
+
+    //table of topics and topic weights
+    let table = document.createElement('table');
+    let thead = document.createElement('thead');
+    let tbody = document.createElement('tbody');
+
+    table.appendChild(thead);
+    table.appendChild(tbody);
+
+    // Adding the entire table to the body tag
+    document.getElementById('table position').appendChild(table);
+
+    // Creating and adding data to first row of the table
+    let row_1 = document.createElement('tr');
+    let heading_1 = document.createElement('th');
+    heading_1.innerHTML = "Topic Number";
+    let heading_2 = document.createElement('th');
+    heading_2.innerHTML = "Words of the Topic";
+    let heading_3 = document.createElement('th');
+    heading_3.innerHTML = "Topic Weight"
+
+    row_1.appendChild(heading_1);
+    row_1.appendChild(heading_2);
+    row_1.appendChild(heading_3);
+    thead.appendChild(row_1);
+
+    //using data from app.py to add on the rows to the table
+    fetch("http://127.0.0.1:5000/result")
+        .then(response => response.json())
+        .then(jsonResponse => {
+            console.log(jsonResponse)
+            var response = "";
+            for (let i = 0; i < jsonResponse["weights"].length; i++) {
+                let row = document.createElement('tr');
+                let row_data1 = document.createElement('td');
+                let row_data2 = document.createElement('td');
+                let row_data3 = document.createElement('td');
+                row_data1.innerHTML =  (i+1)
+                row_data2.innerHTML = jsonResponse["topics"][i]
+                row_data3.innerHTML = jsonResponse["weights"][i];
+                row.appendChild(row_data1);
+                row.appendChild(row_data2);
+                row.appendChild(row_data3);
+                tbody.appendChild(row);
+            }
+
+    }).catch((err) => console.error(err));
+
+
+
+    //coherence
+    fetch("http://127.0.0.1:5000/result")
+        .then(response => response.json())
+        .then(jsonResponse => {
+            console.log(jsonResponse)
+            var response = "The coherence is " + jsonResponse["coherence"]
+            document.getElementById("coherence").innerHTML = response
+    }).catch((err) => console.error(err));
+
+
+
+    //chart bar graph
+    let datadict = {};
+
+    fetch("http://127.0.0.1:5000/result")
+        .then(response => response.json())
+        .then(jsonResponse => {
+            console.log(jsonResponse)
+            let n =1;
+            for (let i = 0; i < jsonResponse["weights"].length; i++) {
+                datadict['Topic ' + n]  = parseFloat(jsonResponse["weights"][i]);
+                n = n+1;
+            }
+
+            console.log(datadict);
+            const ctx = document.getElementById('myChart').getContext('2d');
+
+            //sort data from largest to smallest
+            datadict_array = sortData(datadict)
+            //create a sorted dictionary for the chart
+            sorted_datadict = {};
+            for (var i = 0; i< datadict_array.length; i++){
+                sorted_datadict[datadict_array[i][0]]  = datadict_array[i][1];
+            }
+            console.log(sorted_datadict)
+
+            //create bar chart
+            const myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(sorted_datadict),
+                    datasets: [
+                        {
+                            label: 'Topic Weights',
+                            data: Object.values(sorted_datadict),
+                        },
+                    ],
+                },
+                options: {
+                    //horizontal bar graph
+                    indexAxis: 'y',
+                    backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',  // Bar 1
+                    'rgba(54, 162, 235, 0.2)',  // Bar 2
+                    'rgba(255, 206, 86, 0.2)',  // Bar 3
+                    'rgba(75, 192, 192, 0.2)',  // Bar 4
+                    'rgba(153, 102, 255, 0.2)', // Bar 5
+                    'rgba(255, 159, 64, 0.2)',  // Bar 6
+                    'rgba(180, 70, 14, 0.2)',   // Bar 7
+                    'rgba(20, 87, 132, 0.2)',  // Bar 8
+                    'rgba(39, 99, 47, 0.2)',  // Bar 9
+                    'rgba(200, 30, 56, 0.2)',  // Bar 10
+                    ],
+                    borderWidth: 2,
+                    borderColor: 'black'
+            }
+            });
+            }).catch((err) => console.error(err));
+
+    //sort from largest to smallest
+    function sortData(dict){
+        // Create items array
+        var items = Object.keys(dict).map(function(key) {
+          return [key, dict[key]];
+        });
+
+        // Sort the array based on the second element
+        items.sort(function(first, second) {
+          return second[1] - first[1];
+        });
+        return items;
+    }
+
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head style = "color: rgb(54,123,147);font-family: Georgia; text-align:center; font-size: xxx-large">
+    <title>Topic Modeling</title>
+</head>
+<body  style = "background: rgb(137,191,211); font-family: Georgia;">
+
+<h1 style = "color: rgb(54,123,147);font-family: Georgia; text-align:center;">Topic Modeling</h1>
+<P id = "welcome" style="font-size: x-large; text-align: center; " ></P>
+
+<!-- print each part of data sent from app.py-->
+<ul>
+    {% for dat in data %}
+        <div style="padding: 5px; display:flex; background-color: #FFF; margin: 5px; border-radius: 20px;">
+            <p style="font-size: 16px">{{ dat }}</p>
+        </div>
+    {% endfor %}
+</ul>
+
+
+</body>
+</html>
